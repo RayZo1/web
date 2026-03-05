@@ -1,12 +1,14 @@
 :root {
   --bg-color: #050505;
-  --accent-color: #00ff88;
+  --accent-color: #0066ff;
+  /* Royal Blue */
   --accent-secondary: #00d4ff;
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-glow: rgba(0, 255, 136, 0.15);
+  --glass-glow: rgba(0, 102, 255, 0.15);
+  /* Blue glow */
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -31,8 +33,8 @@ body {
   width: 100%;
   height: 100%;
   z-index: -1;
-  background: radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.05), transparent),
-              radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.05), transparent);
+  background: radial-gradient(circle at 20% 20%, rgba(0, 102, 255, 0.05), transparent),
+    radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.05), transparent);
 }
 
 .glass {
@@ -58,8 +60,15 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .btn {

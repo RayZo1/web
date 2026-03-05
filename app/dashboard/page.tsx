@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Download, Calendar, User, ShieldCheck, Box, RefreshCw, LogOut } from "lucide-react";
 import Link from "next/link";
 
-export default function UserDashboard() {
+function DashboardContent() {
     const searchParams = useSearchParams();
     const key = searchParams.get("key");
     const [data, setData] = useState<any>(null);
@@ -99,6 +99,14 @@ export default function UserDashboard() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function UserDashboard() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center font-black text-2xl animate-pulse">LOADING VAULT...</div>}>
+            <DashboardContent />
+        </Suspense>
     );
 }
 

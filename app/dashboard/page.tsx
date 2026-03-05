@@ -27,6 +27,16 @@ function DashboardContent() {
 
     if (loading) return <div className="flex h-screen items-center justify-center font-black text-2xl animate-pulse">AUTHORIZING ACCESS...</div>;
 
+    if (!data) return (
+        <div className="flex flex-col h-screen items-center justify-center p-6 text-center">
+            <h2 className="text-2xl font-black mb-4">ACCESS DENIED</h2>
+            <p className="text-text-secondary mb-8">Hardware fingerprint or license mismatch. Please re-authorize.</p>
+            <Link href="/">
+                <button className="btn btn-primary">BACK TO HOME</button>
+            </Link>
+        </div>
+    );
+
     return (
         <div className="p-6 md:p-12 max-w-7xl mx-auto min-h-screen">
             <nav className="flex justify-between items-center mb-12">

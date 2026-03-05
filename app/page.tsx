@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Shield, Zap, Lock, Terminal, ExternalLink } from "lucide-react";
-import Link from "next/link";
+import { Terminal, ShieldCheck, Lock, ArrowRight } from "lucide-react";
 import { validateLicense } from "@/lib/api";
 
 export default function LandingPage() {
@@ -17,91 +16,77 @@ export default function LandingPage() {
         setLoading(true);
         setError("");
 
+        // Smart Redirect for Admin Key
+        if (license === "owner-master-key-2026") {
+            window.location.href = `/admin`;
+            return;
+        }
+
         try {
             const data = await validateLicense(license);
             if (data.status === "success") {
                 window.location.href = `/dashboard?key=${license}`;
             } else {
-                setError(data.status === "expired" ? "License has expired." : "Invalid license key.");
+                setError(data.status === "expired" ? "This license has expired." : "Invalid or unrecognized key.");
             }
         } catch (err) {
-            setError("Server connection failed.");
+            setError("Authentication server unreachable.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
-            <header className="fixed top-0 w-full p-6 flex justify-between items-center max-w-7xl">
-                <div className="flex items-center gap-2 font-black text-2xl tracking-tighter">
-                    <Terminal className="text-accent-color" />
-                    UNDERGROUND
+        <main className="flex h-screen flex-col items-center justify-center p-6 bg-[#050505] text-center overflow-hidden">
+            <div className="gradient-bg" />
+
+            <div className="animate-fade-in w-full max-w-md">
+                <div className="flex flex-col items-center mb-10">
+                    <div className="w-16 h-16 bg-accent-color rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,102,255,0.4)]">
+                        <Terminal size={32} color="#000" />
+                    </div>
+                    <h1 className="text-3xl font-black tracking-tighter italic uppercase">Underground Vault</h1>
+                    <p className="text-text-secondary text-xs mt-2 font-bold uppercase tracking-[0.2em]">Secure Access Portal</p>
                 </div>
-                <Link href="/admin">
-                    <button className="btn btn-secondary text-sm">Owner Access</button>
-                </Link>
-            </header>
 
-            <section className="animate-fade-in max-w-3xl">
-                <h1 className="text-6xl md:text-8xl font-black mb-6 tracking-tight">
-                    THE FUTURE OF <span className="text-accent-color">EXECUTION</span>.
-                </h1>
-                <p className="text-text-secondary text-lg mb-10 max-w-xl mx-auto">
-                    Ultra-secure, feature-rich, and built for performance. Sign in with your license to download the latest build and manage your machine link.
-                </p>
-
-                <form onSubmit={handleLogin} className="glass p-8 max-w-lg mx-auto glow-on-hover">
-                    <div className="flex flex-col gap-4">
-                        <div className="text-left mb-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-text-secondary">Enterprise License</label>
-                            <input
-                                type="text"
-                                value={license}
-                                onChange={(e) => setLicense(e.target.value)}
-                                placeholder="XXXX-XXXX-XXXX-XXXX"
-                                className="input-glass mt-2"
-                            />
+                <form onSubmit={handleLogin} className="glass p-10 glow-on-hover relative">
+                    <div className="flex flex-col gap-6">
+                        <div className="text-left">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary mb-3 block">Authorization Key</label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" size={16} />
+                                <input
+                                    type="text"
+                                    value={license}
+                                    onChange={(e) => setLicense(e.target.value)}
+                                    placeholder="XXXX-XXXX-XXXX-XXXX"
+                                    className="input-glass pl-12 text-center tracking-widest font-mono text-sm"
+                                    required
+                                />
+                            </div>
                         </div>
-                        <button type="submit" className="btn btn-primary w-full justify-center" disabled={loading}>
-                            {loading ? "Authorizing..." : "ENTER DASHBOARD"}
+
+                        <button type="submit" className="btn btn-primary w-full justify-center group" disabled={loading}>
+                            {loading ? "VERIFYING..." : (
+                                <>
+                                    ENTER SYSTEM
+                                    <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1" size={18} />
+                                </>
+                            )}
                         </button>
-                        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+                        {error && (
+                            <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
+                                <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider">{error}</p>
+                            </div>
+                        )}
                     </div>
                 </form>
-            </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 max-w-7xl w-full">
-                <FeatureCard
-                    icon={<Shield className="text-accent-color" />}
-                    title="Security"
-                    desc="Multi-layered encryption and cloud-based verification ensures your tool is safe from analysis."
-                />
-                <FeatureCard
-                    icon={<Zap className="text-accent-secondary" />}
-                    title="Performance"
-                    desc="Optimized C++ core and lightweight API ensures minimal impact on your system resources."
-                />
-                <FeatureCard
-                    icon={<Lock className="text-purple-500" />}
-                    title="Privacy"
-                    desc="Hardware fingerprinting technology that only sees what you want it to see. No bloat."
-                />
+                <p className="mt-8 text-[10px] text-text-secondary font-bold uppercase tracking-widest opacity-40">
+                    © 2026 Underground System Logic
+                </p>
             </div>
-
-            <footer className="mt-20 text-text-secondary text-sm">
-                © 2026 Underground Systems. All rights reserved.
-            </footer>
         </main>
-    );
-}
-
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
-    return (
-        <div className="glass p-8 text-left hover:border-accent-color transition-colors">
-            <div className="mb-4">{icon}</div>
-            <h3 className="text-xl font-bold mb-2">{title}</h3>
-            <p className="text-text-secondary text-sm leading-relaxed">{desc}</p>
-        </div>
     );
 }

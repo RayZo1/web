@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShieldAlert, Users, Ban, Globe, Save, Trash2, Edit3, X, Check, Lock } from "lucide-react";
+import { ShieldAlert, Users, Ban, Globe, Save, Trash2, Edit3, X, Check, Lock, RefreshCw } from "lucide-react";
+import { fetchAdminStats, fetchAdminUsers, updateUserData, publishVersion } from "@/lib/api";
 
 export default function AdminPanel() {
     const [isAuthorized, setIsAuthorized] = useState(false);
@@ -10,21 +11,24 @@ export default function AdminPanel() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
-    // Mock Admin Auth Logic
-    const handleAuth = (e: React.FormEvent) => {
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (adminKey === "owner-master-key-2026") {
+        setLoading(true);
+        const data = await fetchAdminStats(adminKey);
+        if (data) {
+            setStats(data);
             setIsAuthorized(true);
-            fetchMockData();
+            const userList = await fetchAdminUsers(adminKey);
+            setUsers(userList);
         }
+        setLoading(false);
     };
 
-    const fetchMockData = () => {
-        setStats({ total: 42, active: 38, banned: 4, version: "1.1" });
-        setUsers([
-            { id: "1008398902644441239", username: "Admin_RayZo", hwid: "5cc09e...5fe6", status: "active", expiry: "20291231" },
-            { id: "987654321012345678", username: "Test_User_2", hwid: "9f8e7d...1a2b", status: "suspended", expiry: "20260310" },
-        ]);
+    const fetchLiveStats = async () => {
+        const data = await fetchAdminStats(adminKey);
+        if (data) setStats(data);
+        const userList = await fetchAdminUsers(adminKey);
+        setUsers(userList);
     };
 
     if (!isAuthorized) {
@@ -68,11 +72,38 @@ export default function AdminPanel() {
                 <StatCard title="Core Engine" val={`v${stats.version}`} icon={<Globe className="text-accent-secondary" />} />
             </div>
 
+            {/* Actions Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <div className="glass p-6 flex flex-col justify-between">
+                    <div>
+                        <h4 className="font-bold mb-2">Publish Update</h4>
+                        <p className="text-text-secondary text-xs mb-4">Push a new version to all clients.</p>
+                        <input id="publish-ver" type="text" placeholder="1.2" className="input-glass text-sm mb-4" />
+                    </div>
+                    <button
+                        onClick={async () => {
+                            const ver = (document.getElementById('publish-ver') as HTMLInputElement).value;
+                            if (ver) {
+                                await publishVersion(adminKey, ver);
+                                fetchLiveStats();
+                            }
+                        }}
+                        className="btn btn-primary w-full justify-center text-sm"
+                    >PUSH GLOBAL UPDATE</button>
+                </div>
+                <div className="glass p-6">
+                    <h4 className="font-bold mb-2">System Broadcast</h4>
+                    <p className="text-text-secondary text-xs mb-4">Global dashboard notification.</p>
+                    <textarea placeholder="Maintenance incoming..." className="input-glass text-sm mb-4 h-20 resize-none" />
+                    <button className="btn btn-secondary w-full justify-center text-sm">SEND TO ALL</button>
+                </div>
+            </div>
+
             {/* User Table */}
             <div className="glass overflow-hidden">
                 <div className="p-6 border-b border-white/5 flex justify-between items-center">
                     <h3 className="font-bold flex items-center gap-2">Database Records</h3>
-                    <button className="btn btn-secondary text-xs">Export JSON</button>
+                    <button onClick={fetchLiveStats} className="btn btn-secondary text-xs"><RefreshCw size={14} /> Refresh</button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -89,17 +120,31 @@ export default function AdminPanel() {
                             {users.map((u) => (
                                 <tr key={u.id} className="hover:bg-white/[0.02] transition-colors text-sm">
                                     <td className="px-6 py-4 font-semibold">{u.username} <span className="block text-[10px] font-normal text-text-secondary">{u.id}</span></td>
-                                    <td className="px-6 py-4 font-mono text-xs">{u.hwid}</td>
+                                    <td className="px-6 py-4 font-mono text-xs italic">{u.hwid || 'NOT_PAIRED'}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase ${u.status === 'active' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
                                             {u.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-text-secondary">{u.expiry}</td>
+                                    <td className="px-6 py-4 text-text-secondary font-mono">{u.expiry}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
-                                            <button className="p-2 hover:bg-white/10 rounded-lg text-text-secondary"><Edit3 size={16} /></button>
-                                            <button className="p-2 hover:bg-white/10 rounded-lg text-red-500"><Ban size={16} /></button>
+                                            <button
+                                                title="Reset HWID"
+                                                onClick={async () => {
+                                                    await updateUserData(adminKey, u.id, { hwid: null });
+                                                    fetchLiveStats();
+                                                }}
+                                                className="p-2 hover:bg-white/10 rounded-lg text-text-secondary"
+                                            ><RefreshCw size={16} /></button>
+                                            <button
+                                                title="Ban User"
+                                                onClick={async () => {
+                                                    await updateUserData(adminKey, u.id, { status: u.status === 'banned' ? 'active' : 'banned' });
+                                                    fetchLiveStats();
+                                                }}
+                                                className={`p-2 hover:bg-white/10 rounded-lg ${u.status === 'banned' ? 'text-green-500' : 'text-red-500'}`}
+                                            ><Ban size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>

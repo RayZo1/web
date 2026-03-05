@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Download, Calendar, User, ShieldCheck, Box, RefreshCw, LogOut } from "lucide-react";
 import Link from "next/link";
+import { validateLicense } from "@/lib/api";
 
 function DashboardContent() {
     const searchParams = useSearchParams();
@@ -13,17 +14,14 @@ function DashboardContent() {
 
     useEffect(() => {
         if (key) {
-            // Mocking for now, will connect to real API
-            setTimeout(() => {
-                setData({
-                    username: "Premium_User#1337",
-                    license: key,
-                    expiry: "2026-03-12",
-                    hwid: "5cc09ea1...5fe6",
-                    version: "1.1"
-                });
+            validateLicense(key).then(res => {
+                if (res.status === "success") {
+                    setData(res);
+                }
                 setLoading(false);
-            }, 1000);
+            });
+        } else {
+            setLoading(false);
         }
     }, [key]);
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download, Shield, Zap, Lock, Terminal, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { validateLicense } from "@/lib/api";
 
 export default function LandingPage() {
     const [license, setLicense] = useState("");
@@ -17,10 +18,14 @@ export default function LandingPage() {
         setError("");
 
         try {
-            // Logic for license validation will go here
-            window.location.href = `/dashboard?key=${license}`;
+            const data = await validateLicense(license);
+            if (data.status === "success") {
+                window.location.href = `/dashboard?key=${license}`;
+            } else {
+                setError(data.status === "expired" ? "License has expired." : "Invalid license key.");
+            }
         } catch (err) {
-            setError("Invalid license key.");
+            setError("Server connection failed.");
         } finally {
             setLoading(false);
         }
